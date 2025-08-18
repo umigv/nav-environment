@@ -24,7 +24,7 @@ code --install-extension ms-python.python
 # ---- Git Config ----
 echo
 echo "===== Git Setup ====="
-sudo apt install git -y
+sudo apt install git xclip -y
 read -p "Enter a name for git. THIS WILL BE PUBLIC. People usually use their GitHub username or full name: " git_name
 read -p "Enter an email for git. THIS WILL BE PUBLIC. You can use your github anonymous email (found under GitHub Email Settings), or your school email if you don't care about being anonymous: " git_email
 
