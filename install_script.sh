@@ -19,10 +19,12 @@ if [ ! -f /etc/apt/sources.list.d/vscode.list ]; then
 fi
 sudo apt update
 sudo apt install code # or code-insiders
+code --install-extension ms-python.python
 
 # ---- Git Config ----
 echo
 echo "===== Git Setup ====="
+sudo apt install git
 read -p "Enter a name for git. THIS WILL BE PUBLIC. People usually use their GitHub username or full name: " git_name
 read -p "Enter an email for git. THIS WILL BE PUBLIC. You can use your github anonymous email (found under GitHub Email Settings), or your school email if you don't care about being anonymous: " git_email
 
@@ -44,6 +46,7 @@ sudo apt install software-properties-common
 sudo add-apt-repository universe
 
 
+sudo apt install curl
 sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
 sudo apt update
