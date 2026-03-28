@@ -6,7 +6,7 @@ echo "Updating and upgrading packages..."
 sudo apt update && sudo apt upgrade -y
 
 # ---- Base deps ----
-sudo apt install -y curl git python3 python3-pip
+sudo apt install -y curl wget git python3 python3-pip
 python3 -m pip install -U pip
 
 # ---- VSCode ----
@@ -37,7 +37,7 @@ sudo add-apt-repository universe -y
 sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
 sudo apt update
-sudo apt install -y ros-humble-desktop ros-dev-tools nlohmann-json3-dev
+sudo apt install -y ros-humble-desktop ros-dev-tools
 if ! grep -q 'source /opt/ros/humble/setup.bash' ~/.bashrc; then
     echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
 fi
