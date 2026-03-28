@@ -1,5 +1,7 @@
 # ARV Navigation Environment Setup
 
+Before you start, if you don't have a GitHub account, make one.
+
 We run ROS in a virtualized Linux environment. Follow the directions for your system:
 
 - [macOS (Apple Silicon)](#macos-apple-silicon)
@@ -51,7 +53,7 @@ Talk to Ethan.
 
 ## Ubuntu
 
-No setup needed — proceed to [Linux Setup](#linux-setup-inside-the-vm) below.
+No setup needed — proceed to [Linux Setup](#linux-setup) below.
 
 ---
 
