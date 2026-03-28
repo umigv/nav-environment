@@ -1,12 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VM_DATA_URL="https://www.dropbox.com/scl/fi/ayn6m7l54pohwll7s352y/VM_Data.qcow2?rlkey=qf8lpqbj9qwrx6b613fjr9jdp&st=yr2p3cdm&dl=1"
-EFI_VARS_URL="https://www.dropbox.com/scl/fi/hbt60wx5k2hyy6x65rj9c/efi_vars.fd?rlkey=9gt81don729qrf7jqd5vk4lm2&st=ultbkp2v&dl=1"
-CONFIG_URL="https://www.dropbox.com/scl/fi/k6y4t8mrm0f9x9i5twf7t/config.plist?rlkey=8cx9l6xh7jojhaxai6550aoms&st=f5p4vhvc&dl=1"
-SCREENSHOT_URL="https://www.dropbox.com/scl/fi/w6yx81mr1ymn31ui9bkvx/screenshot.png?rlkey=kkweak3fuc76r5whg5tmjh9r5&st=0lqon211&dl=1"
-
-UTM_BUNDLE="$(pwd)/ARV VM macOS.utm"
+VM_URL="https://downloads.umarv.com/ARV-VM.utm.tar"
 
 # ---- Check for Apple Silicon ----
 if [[ "$(uname -m)" != "arm64" ]]; then
@@ -34,25 +29,17 @@ if ! command -v aria2c &>/dev/null; then
     brew install aria2
 fi
 
-# ---- Assemble UTM bundle ----
-echo "==> Creating UTM bundle at: ${UTM_BUNDLE}"
-mkdir -p "${UTM_BUNDLE}/Data"
+# ---- Download and extract UTM bundle ----
+echo "==> Downloading ARV VM (~17 GB, this will take a while)..."
+aria2c -x 8 -s 8 -o "ARV-VM.utm.tar" -d "$(pwd)" "${VM_URL}"
 
-echo "==> Downloading VM_Data.qcow2 (~3.6 GB, this will take a while)..."
-aria2c -x 8 -s 8 -o "VM_Data.qcow2" -d "${UTM_BUNDLE}/Data" "${VM_DATA_URL}"
-
-echo "==> Downloading efi_vars.fd..."
-aria2c -x 8 -s 8 -o "efi_vars.fd" -d "${UTM_BUNDLE}/Data" "${EFI_VARS_URL}"
-
-echo "==> Downloading config.plist..."
-aria2c -x 8 -s 8 -o "config.plist" -d "${UTM_BUNDLE}" "${CONFIG_URL}"
-
-echo "==> Downloading screenshot.png..."
-aria2c -x 8 -s 8 -o "screenshot.png" -d "${UTM_BUNDLE}" "${SCREENSHOT_URL}"
+echo "==> Extracting VM..."
+tar -xf "ARV-VM.utm.tar"
+rm "ARV-VM.utm.tar"
 
 # ---- Open the VM in UTM ----
 echo "==> Opening VM in UTM..."
-open "${UTM_BUNDLE}"
+open "$(pwd)/ARV-VM.utm"
 
 echo ""
 echo "The ARV VM has been imported into UTM."
