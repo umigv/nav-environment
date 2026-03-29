@@ -1,5 +1,8 @@
 # ARV Navigation Environment Setup
 
+> [!IMPORTANT]
+> **This setup requires about 20 gigabytes of free space on your system**
+
 Before you start, if you don't have a GitHub account, make one.
 
 We run ROS in a virtualized Linux environment. Follow the directions for your system:
