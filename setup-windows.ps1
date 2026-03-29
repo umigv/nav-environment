@@ -3,10 +3,9 @@
 #   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 #   .\setup-windows.ps1
 
-$OVA_URL = "https://www.dropbox.com/scl/fi/c97lo3p13eqtymeln936g/ARV.ova?rlkey=hgnlqha2vothicvs0z39g5nrn&st=kr1w9lco&dl=1"
-$VDI_URL = "https://www.dropbox.com/scl/fi/9aj39pm5ehdvefnsbkxyf/ARV.vdi?rlkey=5wv4p5qs71ox8bj9n56x9x4fv&st=9xlfqsej&dl=1"
+$BASE_URL = "https://downloads.umarv.com/windows"
 
-$DEST = "$HOME\Documents\ARV VM"
+$DEST = (Get-Location).Path
 
 # ---- Install VirtualBox if missing ----
 if (-not (Get-Command VBoxManage -ErrorAction SilentlyContinue)) {
@@ -29,23 +28,25 @@ if (-not (Get-Command aria2c -ErrorAction SilentlyContinue)) {
 Write-Host "==> Downloading VM files (this may take a while)..."
 New-Item -ItemType Directory -Force -Path $DEST | Out-Null
 
-$ovaPath = "$DEST\ARV.ova"
-$vdiPath = "$DEST\ARV.vdi"
+function Download-IfNeeded($dir, $file, $url) {
+    if ((Test-Path "$dir\$file") -and -not (Test-Path "$dir\$file.aria2")) {
+        Write-Host "==> Skipping $file (already downloaded)"
+    } else {
+        aria2c -x 8 -s 8 -d $dir -o $file $url
+    }
+}
 
-Write-Host "==> Downloading ARV.ova..."
-aria2c -x 8 -s 8 -o "ARV.ova" -d $DEST $OVA_URL
-
-Write-Host "==> Downloading ARV.vdi..."
-aria2c -x 8 -s 8 -o "ARV.vdi" -d $DEST $VDI_URL
+Download-IfNeeded $DEST "ARV.ova" "$BASE_URL/ARV.ova"
+Download-IfNeeded $DEST "ARV.vdi" "$BASE_URL/ARV.vdi"
 
 # ---- Import VM ----
 Write-Host "==> Importing VM into VirtualBox..."
-VBoxManage import $ovaPath
+VBoxManage import "$DEST\ARV.ova"
 
 # ---- Attach VDI ----
 Write-Host "==> Attaching storage..."
 $vmName = "ARV VM"
-VBoxManage storageattach $vmName --storagectl "SATA" --port 1 --device 0 --type hdd --medium $vdiPath
+VBoxManage storageattach $vmName --storagectl "SATA" --port 1 --device 0 --type hdd --medium "$DEST\ARV.vdi"
 
 Write-Host ""
 Write-Host "VM imported! Open VirtualBox and start the ARV VM."

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VM_URL="https://downloads.umarv.com/ARV-VM.utm.tar"
+BASE_URL="https://downloads.umarv.com/mac"
 
 # ---- Check for Apple Silicon ----
 if [[ "$(uname -m)" != "arm64" ]]; then
@@ -29,13 +29,22 @@ if ! command -v aria2c &>/dev/null; then
     brew install aria2
 fi
 
-# ---- Download and extract UTM bundle ----
+# ---- Download UTM bundle files ----
 echo "==> Downloading ARV VM (~17 GB, this will take a while)..."
-aria2c -x 8 -s 8 -o "ARV-VM.utm.tar" -d "$(pwd)" "${VM_URL}"
+mkdir -p "ARV-VM.utm/Data"
+download_if_needed() {
+    local dir="$1" file="$2" url="$3"
+    if [[ -f "$dir/$file" && ! -f "$dir/$file.aria2" ]]; then
+        echo "==> Skipping $file (already downloaded)"
+    else
+        aria2c -x 8 -s 8 -d "$dir" -o "$file" "$url"
+    fi
+}
 
-echo "==> Extracting VM..."
-tar -xf "ARV-VM.utm.tar"
-rm "ARV-VM.utm.tar"
+download_if_needed "ARV-VM.utm"      "config.plist"   "${BASE_URL}/config.plist"
+download_if_needed "ARV-VM.utm"      "screenshot.png" "${BASE_URL}/screenshot.png"
+download_if_needed "ARV-VM.utm/Data" "VM_Data.qcow2"  "${BASE_URL}/Data/VM_Data.qcow2"
+download_if_needed "ARV-VM.utm/Data" "efi_vars.fd"    "${BASE_URL}/Data/efi_vars.fd"
 
 # ---- Open the VM in UTM ----
 echo "==> Opening VM in UTM..."
