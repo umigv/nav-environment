@@ -56,6 +56,9 @@ if ! gh auth status &>/dev/null; then
     gh auth login
 fi
 
+echo "Requesting SSH Permissions..."
+gh auth refresh -h github.com -s admin:ssh_signing_key
+
 if [ ! -f ~/.ssh/id_ed25519 ]; then
     echo "Generating SSH key..."
     GH_EMAIL=$(gh api user --jq '.email // empty')
