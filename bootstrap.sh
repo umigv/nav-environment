@@ -6,10 +6,10 @@ LOCAL_BIN="$HOME/.local/bin"
 # Make freshly-installed binaries visible to `command -v` within this same run.
 export PATH="$LOCAL_BIN:$PATH"
 
-RC_MARK_START="# >>> maverick environment >>>"
-RC_MARK_END="# <<< maverick environment <<<"
+RC_MARK_START="# >>> ARV environment >>>"
+RC_MARK_END="# <<< ARV environment <<<"
 
-log() { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
+log() { printf '\033[1;34m===>\033[0m %s\n' "$*"; }
 
 assert_exists() { command -v "$1" >/dev/null 2>&1 || { echo "ERROR: '$1' not on PATH after install" >&2; exit 1; } }
 
@@ -44,7 +44,7 @@ detect_rc() {
 }
 
 install_brew() {
-    command -v brew >/dev/null 2>&1 && return
+    command -v brew >/dev/null 2>&1 && { log "brew already installed"; return; }
     log "Installing Homebrew"
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     [ -x /opt/homebrew/bin/brew ] && eval "$(/opt/homebrew/bin/brew shellenv)"
@@ -140,10 +140,11 @@ configure_direnv_silence() {
     log "Writing $toml"
     mkdir -p "$(dirname "$toml")"
     cat > "$toml" <<'EOF'
-# Managed by the maverick host bootstrap - edits here will be overwritten.
+# Managed by the ARV host bootstrap - edits here will be overwritten.
 # Silence direnv's per-directory load/unload chatter.
 [global]
-log_format = ""
+log_format = "-"
+hide_env_diff = true
 EOF
 }
 
@@ -154,7 +155,7 @@ configure_shell() {
     [ "$shell_name" = zsh ] || shell_name=bash
 
     touch "$rc"
-    log "Writing maverick block to $rc"
+    log "Writing ARV block to $rc"
 
     # Drop any previous block AND the blank line right before it, so re-runs
     # neither leave a stale copy nor accumulate blanks. (Also normalizes the
@@ -169,12 +170,12 @@ configure_shell() {
 
     # Quoted heredoc keeps $PATH / $(...) literal; only __SHELL__ is substituted.
     block="$(cat <<'EOF'
-# >>> maverick environment >>>
-# Added by the maverick host bootstrap. Edit/remove this whole block, not pieces.
+# >>> ARV environment >>>
+# Added by the ARV host bootstrap. Edit/remove this whole block, not pieces.
 case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) export PATH="$HOME/.local/bin:$PATH" ;; esac
 eval "$(direnv hook __SHELL__)"
 source <(just --completions __SHELL__)
-# <<< maverick environment <<<
+# <<< ARV environment <<<
 EOF
 )"
     block="${block//__SHELL__/$shell_name}"
@@ -198,8 +199,8 @@ setup_github() {
 
     if [ ! -f "$HOME/.ssh/id_ed25519" ]; then
         log "Generating SSH key and adding it to your GitHub account"
-        ssh-keygen -t ed25519 -C "$USER@$(hostname) (maverick)" -f "$HOME/.ssh/id_ed25519" -N ""
-        gh ssh-key add "$HOME/.ssh/id_ed25519.pub" --title "$(hostname) (maverick)" || true
+        ssh-keygen -t ed25519 -C "$USER@$(hostname) (ARV)" -f "$HOME/.ssh/id_ed25519" -N ""
+        gh ssh-key add "$HOME/.ssh/id_ed25519.pub" --title "$(hostname) (ARV)" || true
     fi
 
     if ! git config --global user.name >/dev/null 2>&1; then
@@ -217,7 +218,7 @@ setup_github() {
 # ---- Main ------------------------------------------------------------------
 
 main() {
-    log "Maverick host bootstrap - platform: $PLATFORM"
+    log "ARV host bootstrap - platform: $PLATFORM"
     ensure_prereqs
     install_just
     install_direnv
