@@ -112,7 +112,7 @@ install_gh() {
 }
 
 install_vscode() {
-    [ "$WANT_VSCODE" = 1 ] || return
+    [ "$WANT_VSCODE" = 1 ] || return 0   # bare `return` would propagate the failed test (1) and trip `set -e`
     command -v code >/dev/null 2>&1 && { log "VSCode already installed"; return; }
     log "Installing VSCode"
     case "$PLATFORM" in
@@ -194,7 +194,7 @@ configure_shell() {
 # ---- Per-user / per-machine config -----------------------------------------
 
 add_dialout() {
-    [ "$WANT_DIALOUT" = 1 ] || return
+    [ "$WANT_DIALOUT" = 1 ] || return 0   # bare `return` would propagate the failed test (1) and trip `set -e`
     log "Adding $USER to dialout group (USB/serial device access)"
     sudo usermod -aG dialout "$USER"
 }
