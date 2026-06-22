@@ -81,7 +81,7 @@ install_direnv() {
     log "Installing direnv"
     case "$PLATFORM" in
         macos) 
-            brew install direnv ;;
+            brew install --no-ask direnv ;;
         linux|wsl)
             mkdir -p "$LOCAL_BIN"
             curl -sfL https://direnv.net/install.sh | bin_path="$LOCAL_BIN" bash ;;
