@@ -149,7 +149,7 @@ EOF
 }
 
 configure_shell() {
-    local rc shell_name block tmp
+    local rc shell_name tmp
     rc="$(detect_rc)"
     shell_name="$(basename "${SHELL:-/bin/bash}")"
     [ "$shell_name" = zsh ] || shell_name=bash
@@ -168,19 +168,27 @@ configure_shell() {
         END     { if (held) print prev }
     ' "$rc" > "$tmp" && mv "$tmp" "$rc"
 
-    # Quoted heredoc keeps $PATH / $(...) literal; only __SHELL__ is substituted.
-    block="$(cat <<'EOF'
-# >>> ARV environment >>>
-# Added by the ARV host bootstrap. Edit/remove this whole block, not pieces.
-case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) export PATH="$HOME/.local/bin:$PATH" ;; esac
-eval "$(direnv hook __SHELL__)"
-source <(just --completions __SHELL__)
-# <<< ARV environment <<<
-EOF
-)"
-    block="${block//__SHELL__/$shell_name}"
-    # Always prepend a blank separator; the awk above removes it again on re-run.
-    printf '\n%s\n' "$block" >> "$rc"
+    # Write the block with printf, one line at a time, instead of capturing a
+    # here-doc with $(...) and swapping a "__SHELL__" placeholder via ${//}.
+    #
+    # Why: macOS ships bash 3.2, whose parser mishandles a here-doc nested inside
+    # command substitution. On 3.2 the placeholder swap silently didn't apply and
+    # the literal "__SHELL__" was written into the rc, so `direnv hook __SHELL__`
+    # failed at shell startup with "unknown target shell '__SHELL__'". printf is
+    # version-proof and needs neither the here-doc nor the ${//} substitution.
+    #
+    # Single-quoted format strings keep $PATH / $HOME / $(...) literal in the rc;
+    # %s injects the resolved shell name ($shell_name) into the direnv/just hooks.
+    # The leading blank line is the separator the awk above strips on re-run.
+    # shellcheck disable=SC2016  # $PATH/$HOME/$(...) are meant to stay literal in the rc
+    {
+        printf '\n%s\n' "$RC_MARK_START"
+        printf '%s\n' '# Added by the ARV host bootstrap. Edit/remove this whole block, not pieces.'
+        printf '%s\n' 'case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) export PATH="$HOME/.local/bin:$PATH" ;; esac'
+        printf 'eval "$(direnv hook %s)"\n' "$shell_name"
+        printf 'source <(just --completions %s)\n' "$shell_name"
+        printf '%s\n' "$RC_MARK_END"
+    } >> "$rc"
 }
 
 # ---- Per-user / per-machine config -----------------------------------------
