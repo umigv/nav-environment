@@ -208,6 +208,7 @@ setup_github() {
     if [ ! -f "$HOME/.ssh/id_ed25519" ]; then
         log "Generating SSH key and adding it to your GitHub account"
         ssh-keygen -t ed25519 -C "$USER@$(hostname) (ARV)" -f "$HOME/.ssh/id_ed25519" -N ""
+        gh auth refresh -h github.com -s admin:public_key
         gh ssh-key add "$HOME/.ssh/id_ed25519.pub" --title "$(hostname) (ARV)" || true
     fi
 
