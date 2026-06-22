@@ -202,7 +202,7 @@ add_dialout() {
 setup_github() {
     log "GitHub setup"
     if ! gh auth status >/dev/null 2>&1; then
-        gh auth login
+        gh auth login --clipboard --git-protocol ssh --web
     fi
 
     if [ ! -f "$HOME/.ssh/id_ed25519" ]; then
