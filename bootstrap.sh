@@ -200,15 +200,8 @@ add_dialout() {
 
 setup_github() {
     log "GitHub setup"
-    if ! gh auth status >/dev/null 2>&1; then
+    if ! gh auth status >/dev/null 2>&1 || ! gh auth status 2>&1 | grep -q 'ssh'; then
         gh auth login --git-protocol ssh --web
-    fi
-
-    if [ ! -f "$HOME/.ssh/id_ed25519" ]; then
-        log "Generating SSH key and adding it to your GitHub account"
-        ssh-keygen -t ed25519 -C "$USER@$(hostname) (ARV)" -f "$HOME/.ssh/id_ed25519" -N ""
-        gh auth refresh -h github.com -s admin:public_key
-        gh ssh-key add "$HOME/.ssh/id_ed25519.pub" --title "$(hostname) (ARV)" || true
     fi
 
     if ! git config --global user.name >/dev/null 2>&1; then
