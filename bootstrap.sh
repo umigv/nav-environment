@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 set -Eeuo pipefail
 
 LOCAL_BIN="$HOME/.local/bin"
@@ -15,7 +14,7 @@ assert_exists() { command -v "$1" >/dev/null 2>&1 || { echo "ERROR: '$1' not on 
 
 detect_platform() {
     case "$(uname -s)" in
-        Darwin) 
+        Darwin)
             echo macos ;;
         Linux)
             if grep -qiE 'microsoft|wsl' /proc/version 2>/dev/null; then
@@ -23,14 +22,12 @@ detect_platform() {
             else
                 echo linux
             fi ;;
-        *) 
-        echo "Unsupported OS: $(uname -s)" >&2; exit 1 ;;
+        *)
+            echo "Unsupported OS: $(uname -s)" >&2; exit 1 ;;
     esac
 }
 
-PLATFORM="$(detect_platform)"
-
-case "$PLATFORM" in
+case "$(detect_platform)" in
     macos) WANT_VSCODE=1; WANT_DIALOUT=0 ;;  # dialout doesn't exist on mac
     wsl)   WANT_VSCODE=0; WANT_DIALOUT=1 ;;  # editor lives on the Windows host
     linux) WANT_VSCODE=1; WANT_DIALOUT=1 ;;
@@ -46,13 +43,13 @@ detect_rc() {
 install_brew() {
     command -v brew >/dev/null 2>&1 && { log "brew already installed"; return; }
     log "Installing Homebrew"
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     [ -x /opt/homebrew/bin/brew ] && eval "$(/opt/homebrew/bin/brew shellenv)"
 }
 
 ensure_prereqs() {
-    case "$PLATFORM" in
-        macos) 
+    case "$(detect_platform)" in
+        macos)
             install_brew ;;
         linux|wsl)
             log "Updating apt and installing base tools"
@@ -66,8 +63,8 @@ ensure_prereqs() {
 install_just() {
     command -v just >/dev/null 2>&1 && { log "just already installed"; return; }
     log "Installing just"
-    case "$PLATFORM" in
-        macos) 
+    case "$(detect_platform)" in
+        macos)
             brew install just ;;
         linux|wsl)
             mkdir -p "$LOCAL_BIN"
@@ -79,8 +76,8 @@ install_just() {
 install_direnv() {
     command -v direnv >/dev/null 2>&1 && { log "direnv already installed"; return; }
     log "Installing direnv"
-    case "$PLATFORM" in
-        macos) 
+    case "$(detect_platform)" in
+        macos)
             brew install --no-ask direnv ;;
         linux|wsl)
             mkdir -p "$LOCAL_BIN"
@@ -89,11 +86,23 @@ install_direnv() {
     assert_exists direnv
 }
 
+install_python3() {
+    command -v python3 >/dev/null 2>&1 && { log "python3 already installed"; return; }
+    log "Installing python3"
+    case "$(detect_platform)" in
+        macos)
+            brew install python3 ;;
+        linux|wsl)
+            sudo apt install -y python3 ;;
+    esac
+    assert_exists python3
+}
+
 install_gh() {
     command -v gh >/dev/null 2>&1 && { log "gh already installed"; return; }
     log "Installing GitHub CLI"
-    case "$PLATFORM" in
-        macos) 
+    case "$(detect_platform)" in
+        macos)
             brew install gh ;;
         linux|wsl)
             if [ ! -f /etc/apt/sources.list.d/github-cli.list ]; then
@@ -115,8 +124,8 @@ install_vscode() {
     [ "$WANT_VSCODE" = 1 ] || return 0   # bare `return` would propagate the failed test (1) and trip `set -e`
     command -v code >/dev/null 2>&1 && { log "VSCode already installed"; return; }
     log "Installing VSCode"
-    case "$PLATFORM" in
-        macos) 
+    case "$(detect_platform)" in
+        macos)
             brew install --cask visual-studio-code ;;
         linux)
             if [ ! -f /etc/apt/sources.list.d/vscode.list ]; then
@@ -135,60 +144,50 @@ install_vscode() {
 
 # ---- Shell integration -----------------------------------------------------
 
-configure_direnv_silence() {
+configure_direnv() {
     local toml="$HOME/.config/direnv/direnv.toml"
-    log "Writing $toml"
+    log "Configuring direnv"
     mkdir -p "$(dirname "$toml")"
-    cat > "$toml" <<'EOF'
-# Managed by the ARV host bootstrap - edits here will be overwritten.
-# Silence direnv's per-directory load/unload chatter.
-[global]
-log_format = "-"
-hide_env_diff = true
-EOF
+    # We silence direnv via DIRENV_LOG_FORMAT= in the shell rc rather than
+    # log_format = "-" in the toml (direnv bug: https://github.com/direnv/direnv/issues/1418).
+    # The toml must exist for direnv to pick up env var overrides, so we touch it.
+    touch "$toml"
 }
 
 configure_shell() {
-    local rc shell_name tmp
+    local rc shell_name block_file tmp
     rc="$(detect_rc)"
     shell_name="$(basename "${SHELL:-/bin/bash}")"
     [ "$shell_name" = zsh ] || shell_name=bash
 
     touch "$rc"
-    log "Writing ARV block to $rc"
+    log "Configuring $rc"
 
-    # Drop any previous block AND the blank line right before it, so re-runs
-    # neither leave a stale copy nor accumulate blanks. (Also normalizes the
-    # trailing newline, so the appended block always starts on its own line.)
-    tmp="$(mktemp)"
-    awk -v s="$RC_MARK_START" -v e="$RC_MARK_END" '
-        skip    { if ($0 == e) skip = 0; next }                            # inside block: drop through end marker
-        $0 == s { if (held && prev != "") print prev; held = 0; skip = 1; next }  # at start: drop the blank we held
-                { if (held) print prev; prev = $0; held = 1 }              # 1-line lookbehind
-        END     { if (held) print prev }
-    ' "$rc" > "$tmp" && mv "$tmp" "$rc"
-
-    # Write the block with printf, one line at a time, instead of capturing a
-    # here-doc with $(...) and swapping a "__SHELL__" placeholder via ${//}.
-    #
-    # Why: macOS ships bash 3.2, whose parser mishandles a here-doc nested inside
-    # command substitution. On 3.2 the placeholder swap silently didn't apply and
-    # the literal "__SHELL__" was written into the rc, so `direnv hook __SHELL__`
-    # failed at shell startup with "unknown target shell '__SHELL__'". printf is
-    # version-proof and needs neither the here-doc nor the ${//} substitution.
-    #
-    # Single-quoted format strings keep $PATH / $HOME / $(...) literal in the rc;
-    # %s injects the resolved shell name ($shell_name) into the direnv/just hooks.
-    # The leading blank line is the separator the awk above strips on re-run.
-    # shellcheck disable=SC2016  # $PATH/$HOME/$(...) are meant to stay literal in the rc
+    # heredoc expansion is buggy on bash 3.2 (macOS default); use printf instead.
+    # shellcheck disable=SC2016
+    block_file="$(mktemp)"
     {
-        printf '\n%s\n' "$RC_MARK_START"
+        printf '%s\n' "$RC_MARK_START"
         printf '%s\n' '# Added by the ARV host bootstrap. Edit/remove this whole block, not pieces.'
         printf '%s\n' 'case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) export PATH="$HOME/.local/bin:$PATH" ;; esac'
+        printf '%s\n' 'export DIRENV_LOG_FORMAT='
         printf 'eval "$(direnv hook %s)"\n' "$shell_name"
         printf 'source <(just --completions %s)\n' "$shell_name"
         printf '%s\n' "$RC_MARK_END"
-    } >> "$rc"
+    } > "$block_file"
+
+    if grep -qF "$RC_MARK_START" "$rc"; then
+        tmp="$(mktemp)"
+        awk -v s="$RC_MARK_START" -v e="$RC_MARK_END" -v bf="$block_file" '
+            $0 == s { while ((getline line < bf) > 0) print line; skip=1; next }
+            skip && $0 == e { skip=0; next }
+            !skip
+        ' "$rc" > "$tmp" && mv "$tmp" "$rc"
+    else
+        printf '\n' >> "$rc"
+        cat "$block_file" >> "$rc"
+    fi
+    rm -f "$block_file"
 }
 
 # ---- Per-user / per-machine config -----------------------------------------
@@ -202,7 +201,7 @@ add_dialout() {
 setup_github() {
     log "GitHub setup"
     if ! gh auth status >/dev/null 2>&1; then
-        gh auth login --clipboard --git-protocol ssh --web
+        gh auth login --git-protocol ssh --web
     fi
 
     if [ ! -f "$HOME/.ssh/id_ed25519" ]; then
@@ -217,23 +216,24 @@ setup_github() {
     fi
 
     if ! git config --global user.email >/dev/null 2>&1; then
-        local gemail
-        gemail="$(gh api user --jq '.email // empty' 2>/dev/null || true)"
-        [ -n "$gemail" ] || gemail="$(gh api user --jq '"\(.id)+\(.login)@users.noreply.github.com"')"
-        git config --global user.email "$gemail"
+        local email
+        email="$(gh api user --jq '.email // empty' 2>/dev/null || true)"
+        [ -n "$email" ] || email="$(gh api user --jq '"\(.id)+\(.login)@users.noreply.github.com"')"
+        git config --global user.email "$email"
     fi
 }
 
 # ---- Main ------------------------------------------------------------------
 
 main() {
-    log "ARV host bootstrap - platform: $PLATFORM"
+    log "ARV host bootstrap - platform: $(detect_platform)"
     ensure_prereqs
     install_just
     install_direnv
+    install_python3
     install_gh
     install_vscode
-    configure_direnv_silence
+    configure_direnv
     configure_shell
     add_dialout
     setup_github
