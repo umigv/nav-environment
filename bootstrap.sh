@@ -62,7 +62,7 @@ ensure_prereqs() {
     esac
 }
 
-# ---- Tools -----------------------------------------------------------------
+# ---- Tools -----------------------------------------------------------------------------------------------------------
 
 install_just() {
     command -v just >/dev/null 2>&1 && { log "just already installed"; return; }
@@ -134,7 +134,7 @@ install_vscode() {
     esac
 }
 
-# ---- Shell integration -----------------------------------------------------
+# ---- Shell integration -----------------------------------------------------------------------------------------------
 
 configure_direnv() {
     local toml="$HOME/.config/direnv/direnv.toml"
@@ -182,7 +182,7 @@ configure_shell() {
     rm -f "$block_file"
 }
 
-# ---- Per-user / per-machine config -----------------------------------------
+# ---- Per-user / per-machine config -----------------------------------------------------------------------------------
 
 add_dialout() {
     [ "$WANT_DIALOUT" = 1 ] || return 0   # bare `return` would propagate the failed test (1) and trip `set -e`
@@ -216,7 +216,7 @@ finish() {
     kill -HUP $PPID
 }
 
-# ---- Main ------------------------------------------------------------------
+# ---- Main ------------------------------------------------------------------------------------------------------------
 
 main() {
     log "ARV host bootstrap - platform: $(detect_platform)"
