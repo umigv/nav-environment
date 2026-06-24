@@ -208,6 +208,16 @@ setup_github() {
     fi
 }
 
+finish() {
+    # Wait for enter
+    read
+    # Delete this script now that bootstrap is done.
+    rm -f "$0"
+    # Close terminal by sending SIGHUP to the parent process (the terminal emulator)
+    kill -HUP $PPID
+
+}
+
 # ---- Main ------------------------------------------------------------------
 
 main() {
@@ -222,10 +232,7 @@ main() {
     add_dialout
     setup_github
     log "Host bootstrap complete. Press enter to close this terminal (required)."
-    # Wait for enter
-    read
-    # Close terminal by sending SIGHUP to the parent process (the terminal emulator)
-    kill -HUP $PPID
+    finish
 }
 
 main "$@"
