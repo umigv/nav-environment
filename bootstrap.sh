@@ -215,7 +215,6 @@ finish() {
     rm -f "$0"
     # Close terminal by sending SIGHUP to the parent process (the terminal emulator)
     kill -HUP $PPID
-
 }
 
 # ---- Main ------------------------------------------------------------------
