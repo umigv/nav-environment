@@ -50,9 +50,8 @@ install_brew() {
 ensure_prereqs() {
     case "$(detect_platform)" in
         macos)
-            # We need to have sudo authorization before brew install, since it
-            # requires sudo, but cannot prompt the user for their password due
-            # to being run in non-interactive mode.
+            # We need to have sudo authorization before brew install, since it requires sudo, but cannot prompt the user
+            # for their password due to being run in non-interactive mode.
             sudo -v
             install_brew ;;
         linux|wsl)
@@ -140,9 +139,9 @@ configure_direnv() {
     local toml="$HOME/.config/direnv/direnv.toml"
     log "Configuring direnv"
     mkdir -p "$(dirname "$toml")"
-    # We silence direnv via DIRENV_LOG_FORMAT= in the shell rc rather than
-    # log_format = "-" in the toml (direnv bug: https://github.com/direnv/direnv/issues/1418).
-    # The toml must exist for direnv to pick up env var overrides, so we touch it.
+    # We silence direnv via DIRENV_LOG_FORMAT= in the shell rc rather than log_format = "-" in the toml (direnv bug:
+    # https://github.com/direnv/direnv/issues/1418). The toml must exist for direnv to pick up env var overrides, so we
+    # touch it.
     touch "$toml"
 }
 
