@@ -98,8 +98,7 @@ install_gh() {
         linux|wsl)
             if [ ! -f /etc/apt/sources.list.d/github-cli.list ]; then
                 keyring=/usr/share/keyrings/githubcli-archive-keyring.gpg
-                curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
-                    | sudo dd of="$keyring"
+                curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of="$keyring"
                 sudo chmod go+r "$keyring"
                 arch=$(dpkg --print-architecture)
                 echo "deb [arch=$arch signed-by=$keyring] https://cli.github.com/packages stable main" \
