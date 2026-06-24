@@ -50,6 +50,10 @@ install_brew() {
 ensure_prereqs() {
     case "$(detect_platform)" in
         macos)
+            # We need to have sudo authorization before brew install, since it
+            # requires sudo, but cannot prompt the user for their password due
+            # to being run in non-interactive mode.
+            sudo -v
             install_brew ;;
         linux|wsl)
             log "Updating apt and installing base tools"
