@@ -90,18 +90,6 @@ install_direnv() {
     assert_exists direnv
 }
 
-install_python3() {
-    command -v python3 >/dev/null 2>&1 && { log "python3 already installed"; return; }
-    log "Installing python3"
-    case "$(detect_platform)" in
-        macos)
-            brew install python3 ;;
-        linux|wsl)
-            sudo apt install -y python3 ;;
-    esac
-    assert_exists python3
-}
-
 install_gh() {
     command -v gh >/dev/null 2>&1 && { log "gh already installed"; return; }
     log "Installing GitHub CLI"
@@ -227,7 +215,6 @@ main() {
     ensure_prereqs
     install_just
     install_direnv
-    install_python3
     install_gh
     install_vscode
     configure_direnv
