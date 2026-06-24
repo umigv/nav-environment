@@ -210,9 +210,7 @@ setup_github() {
 
 finish() {
     log "Host bootstrap complete. Press enter to close this terminal (required)."
-    # Wait for enter
     read
-    # Delete this script now that bootstrap is done.
     rm -f "$0"
     # Close terminal by sending SIGHUP to the parent process (the terminal emulator)
     kill -HUP $PPID
