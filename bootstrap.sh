@@ -209,6 +209,7 @@ setup_github() {
 }
 
 finish() {
+    log "Host bootstrap complete. Press enter to close this terminal (required)."
     # Wait for enter
     read
     # Delete this script now that bootstrap is done.
@@ -230,7 +231,6 @@ main() {
     configure_shell
     add_dialout
     setup_github
-    log "Host bootstrap complete. Press enter to close this terminal (required)."
     finish
 }
 
