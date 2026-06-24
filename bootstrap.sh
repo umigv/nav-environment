@@ -234,7 +234,11 @@ main() {
     configure_shell
     add_dialout
     setup_github
-    log "Host bootstrap complete. Open a NEW terminal (or run: source $(detect_rc)) so the changes take effect"
+    log "Host bootstrap complete. Press enter to close this terminal (required)."
+    # Wait for enter
+    read
+    # Close terminal by sending SIGHUP to the parent process (the terminal emulator)
+    kill -HUP $PPID
 }
 
 main "$@"
