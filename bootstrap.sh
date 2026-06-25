@@ -5,10 +5,8 @@ LOCAL_BIN="$HOME/.local/bin"
 # Make freshly-installed binaries visible to `command -v` within this same run.
 export PATH="$LOCAL_BIN:$PATH"
 
-RC_MARK_START="# >>> ARV environment >>>"
-RC_MARK_END="# <<< ARV environment <<<"
-
-log() { printf '\033[1;34m===>\033[0m %s\n' "$*"; }
+log() { printf '\033[1;34m===> %s\033[0m\n' "$*"; }
+trap 'printf "\033[1;31mERROR at line %s: %s (exit %s)\033[0m\n" "$LINENO" "$BASH_COMMAND" "$?" >&2' ERR
 
 assert_exists() { command -v "$1" >/dev/null 2>&1 || { echo "ERROR: '$1' not on PATH after install" >&2; exit 1; } }
 
@@ -32,13 +30,6 @@ case "$(detect_platform)" in
     wsl)   WANT_VSCODE=0; WANT_DIALOUT=1 ;;  # editor lives on the Windows host
     linux) WANT_VSCODE=1; WANT_DIALOUT=1 ;;
 esac
-
-detect_rc() {
-    case "$(basename "${SHELL:-/bin/bash}")" in
-        zsh) echo "$HOME/.zshrc" ;;
-        *)   echo "$HOME/.bashrc" ;;
-    esac
-}
 
 install_brew() {
     command -v brew >/dev/null 2>&1 && { log "brew already installed"; return; }
@@ -144,40 +135,56 @@ configure_direnv() {
     touch "$toml"
 }
 
-configure_shell() {
-    local rc shell_name block_file tmp
-    rc="$(detect_rc)"
-    shell_name="$(basename "${SHELL:-/bin/bash}")"
-    [ "$shell_name" = zsh ] || shell_name=bash
+update_or_append_block() {
+    local rc_path="$1" body="$2" rc_name="${1##*/}"
+    local mark_start='# >>> ARV environment >>>'
+    local mark_end='# <<< ARV environment <<<'
+    local block="$mark_start
+$body
+$mark_end"
 
-    touch "$rc"
-    log "Configuring $rc"
-
-    # heredoc expansion is buggy on bash 3.2 (macOS default); use printf instead.
-    # shellcheck disable=SC2016
-    block_file="$(mktemp)"
-    {
-        printf '%s\n' "$RC_MARK_START"
-        printf '%s\n' '# Added by the ARV host bootstrap. Edit/remove this whole block, not pieces.'
-        printf '%s\n' 'case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) export PATH="$HOME/.local/bin:$PATH" ;; esac'
-        printf '%s\n' 'export DIRENV_LOG_FORMAT='
-        printf 'eval "$(direnv hook %s)"\n' "$shell_name"
-        printf 'source <(just --completions %s)\n' "$shell_name"
-        printf '%s\n' "$RC_MARK_END"
-    } > "$block_file"
-
-    if grep -qF "$RC_MARK_START" "$rc"; then
-        tmp="$(mktemp)"
-        awk -v s="$RC_MARK_START" -v e="$RC_MARK_END" -v bf="$block_file" '
-            $0 == s { while ((getline line < bf) > 0) print line; skip=1; next }
-            skip && $0 == e { skip=0; next }
-            !skip
-        ' "$rc" > "$tmp" && mv "$tmp" "$rc"
+    if grep -qF "$mark_start" "$rc_path"; then
+        log "Updating configuration in ~/$rc_name"
+        local tmp_block tmp_out
+        tmp_block=$(mktemp)
+        tmp_out=$(mktemp)
+        printf '%s\n' "$block" > "$tmp_block"
+        awk -v s="$mark_start" -v e="$mark_end" -v bf="$tmp_block" '
+            $0 == s { while ((getline line < bf) > 0) print line; inside = 1; next }
+            inside && $0 == e { inside = 0; next }
+            !inside { print }
+        ' "$rc_path" > "$tmp_out"
+        mv "$tmp_out" "$rc_path"
+        rm -f "$tmp_block"
     else
-        printf '\n' >> "$rc"
-        cat "$block_file" >> "$rc"
+        log "Installing configuration in ~/$rc_name"
+        printf '\n%s\n' "$block" >> "$rc_path"
     fi
-    rm -f "$block_file"
+}
+
+# Single-quoted so $PATH/$HOME/$(...) stay literal for the user's shell to evaluate.
+# shellcheck disable=SC2016
+BASH_BODY='# Added by the ARV host bootstrap. Edit/remove this whole block, not pieces.
+case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) export PATH="$HOME/.local/bin:$PATH" ;; esac
+export DIRENV_LOG_FORMAT=
+eval "$(direnv hook bash)"
+source <(just --completions bash)'
+
+# shellcheck disable=SC2016
+ZSH_BODY='# Added by the ARV host bootstrap. Edit/remove this whole block, not pieces.
+case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) export PATH="$HOME/.local/bin:$PATH" ;; esac
+export DIRENV_LOG_FORMAT=
+eval "$(direnv hook zsh)"
+source <(just --completions zsh)'
+
+configure_shell() {
+    local rc body
+    case "$(basename "${SHELL:-/bin/bash}")" in
+        zsh) rc="$HOME/.zshrc";  body="$ZSH_BODY" ;;
+        *)   rc="$HOME/.bashrc"; body="$BASH_BODY" ;;
+    esac
+    touch "$rc"
+    update_or_append_block "$rc" "$body"
 }
 
 # ---- Per-user / per-machine config -----------------------------------------------------------------------------------
@@ -206,12 +213,23 @@ setup_github() {
     fi
 }
 
-finish() {
-    log "Host bootstrap complete. Press enter to close this terminal (required)."
-    read
-    rm -f "$0"
-    # Close terminal by sending SIGHUP to the parent process (the terminal emulator)
-    kill -HUP $PPID
+# SIGHUP the terminal emulator so its window closes, forcing a fresh login shell so the rc changes we just wrote take
+# effect. We climb the process tree by ancestor *name* rather than a fixed number of hops, since the launch chain
+# between this script and the terminal can gain or lose layers.
+close_terminal() {
+    local pid=$PPID name
+    while [ -n "$pid" ] && [ "$pid" -gt 1 ]; do
+        name=$(ps -o comm= -p "$pid" 2>/dev/null) || break
+        case "$name" in
+            *gnome-terminal*|*konsole*|*xterm*|*alacritty*|*kitty*|*tilix*|\
+            *terminator*|*wezterm*|*foot*|*ptyxis*|*xfce4-terminal*)
+                kill -HUP "$pid"
+                return 0 ;;
+        esac
+        pid=$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ')
+    done
+    # No known terminal in the ancestry. Leave for manual close rather than risk killing the wrong process.
+    return 0
 }
 
 # ---- Main ------------------------------------------------------------------------------------------------------------
@@ -227,7 +245,10 @@ main() {
     configure_shell
     add_dialout
     setup_github
-    finish
+    log "Host bootstrap complete. Press enter to close this terminal (required)."
+    read -r
+    rm -f "$0"
+    close_terminal
 }
 
 main "$@"
