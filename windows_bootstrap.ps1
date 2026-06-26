@@ -15,22 +15,13 @@ Write-Host "==> Visual Studio Code..."
 if (Get-Command code -ErrorAction SilentlyContinue) {
     Write-Host "VS Code already installed."
 } else {
-    $reply = Read-Host "VS Code not found. Install it? Choose 'n' if you have another editor. [Y/n]"
+    $reply = Read-Host "VSCode not found. Install it? Choose 'n' if you have another editor. [Y/n]"
     if ($reply -notmatch '^[Nn]') {
         winget install --exact --id Microsoft.VisualStudioCode --silent `
             --accept-package-agreements --accept-source-agreements
     } else {
-        Write-Host "Skipping VS Code install (using your own editor)."
+        Write-Host "Skipping VSCode install (using your own editor)."
     }
 }
 
-Write-Host "==> Installing VS Code WSL extension..."
-if (Get-Command code -ErrorAction SilentlyContinue) {
-    code --install-extension ms-vscode-remote.remote-wsl --force
-} else {
-    Write-Host "VS Code 'code' command not found; skipping extension install."
-}
-
-Write-Host "usbipd installed."
-Write-Host "Make sure WSL2 + Ubuntu are set up first (EECS 280 tutorial):"
-Write-Host "  https://github.com/eecs280staff/tutorials/blob/main/docs/setup_wsl.md"
+Write-Host "Windows bootstrap complete."
