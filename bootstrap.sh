@@ -222,7 +222,7 @@ close_terminal() {
         name=$(ps -o comm= -p "$pid" 2>/dev/null) || break
         case "$name" in
             *gnome-terminal*|*konsole*|*xterm*|*alacritty*|*kitty*|*tilix*|\
-            *terminator*|*wezterm*|*foot*|*ptyxis*|*xfce4-terminal*)
+            *terminator*|*wezterm*|*foot*|*ptyxis*|*xfce4-terminal*|login*)
                 kill -HUP "$pid"
                 return 0 ;;
         esac
