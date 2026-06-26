@@ -104,6 +104,11 @@ install_gh() {
 install_vscode() {
     [ "$WANT_VSCODE" = 1 ] || return 0   # bare `return` would propagate the failed test (1) and trip `set -e`
     command -v code >/dev/null 2>&1 && { log "VSCode already installed"; return; }
+    local reply
+    read -r -p "VSCode not found. Install it? Choose 'n' if you have another editor. [Y/n] " reply
+    case "$reply" in
+        [Nn]*) log "Skipping VSCode install (using your own editor)"; return 0 ;;
+    esac
     log "Installing VSCode"
     case "$(detect_platform)" in
         macos)
@@ -175,12 +180,21 @@ ZSH_BODY='# Added by the ARV host bootstrap. Edit/remove this whole block, not p
 case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) export PATH="$HOME/.local/bin:$PATH" ;; esac
 export DIRENV_LOG_FORMAT=
 eval "$(direnv hook zsh)"
-source <(just --completions zsh)'
+# Register completions and initialize
+fpath=("$HOME/.zsh/completions" $fpath)
+command -v compdef >/dev/null 2>&1 || { autoload -Uz compinit && compinit; }'
+
+install_zsh_completion() {
+    local dir="$HOME/.zsh/completions"
+    log "Installing zsh completion for just in ~/.zsh/completions"
+    mkdir -p "$dir"
+    { printf '#compdef just\n'; just --completions zsh; } > "$dir/_just"
+}
 
 configure_shell() {
     local rc body
     case "$(basename "${SHELL:-/bin/bash}")" in
-        zsh) rc="$HOME/.zshrc";  body="$ZSH_BODY" ;;
+        zsh) rc="$HOME/.zshrc";  body="$ZSH_BODY"; install_zsh_completion ;;
         *)   rc="$HOME/.bashrc"; body="$BASH_BODY" ;;
     esac
     touch "$rc"
