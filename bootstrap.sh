@@ -242,8 +242,9 @@ close_terminal() {
         esac
         pid=$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ')
     done
-    # No known terminal in the ancestry. Leave for manual close rather than risk killing the wrong process.
-    return 0
+    
+    echo "close_terminal: unrecognized terminal emulator in process ancestry; leaving open" >&2
+    return 1
 }
 
 # ---- Main ------------------------------------------------------------------------------------------------------------
@@ -262,7 +263,8 @@ main() {
     log "Host bootstrap complete. Press enter to close this terminal (required)."
     read -r
     rm -f "$0"
-    close_terminal
+    # Setup already succeeded; a failed auto-close shouldn't fail the script.
+    close_terminal || true
 }
 
 main "$@"
