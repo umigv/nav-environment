@@ -12,7 +12,7 @@ Before you start, if you don't have a GitHub account, make one, then follow the 
 Before you run it, the bootstrap script makes a few persistent changes on your machine:
 - **Installs CLI tools:** [just](https://github.com/casey/just), [direnv](https://direnv.net/), and the [GitHub CLI](https://cli.github.com/).
 - **Edits your shell rc file** (`~/.bashrc` or `~/.zshrc`). It adds a clearly marked block (between `# >>> ARV environment >>>` and `# <<< ARV environment <<<`) that puts `~/.local/bin` on your PATH, silences direnv, and configures direnv and just.
-- **Adds you to the `dialout` group** (Linux/WSL only) for non-root access to USB/serial devices.
+- **Adds you to the `dialout` group** (Debian/Ubuntu/WSL only) for non-root access to USB/serial devices.
 - **Sets your global git identity**: `user.name` / `user.email` if they aren't already configured.
 
 The script is idempotent and thus safe to rerun.
@@ -81,5 +81,5 @@ We need these things:
 - [Direnv](https://direnv.net/) >=2.36 installed. We use it to load environment variables automatically in our repos which is especially useful for ROS2.
 - An SSH key added to your GitHub account.
 - An empty `direnv.toml` file created in `~/.config/direnv`. This is used to configure direnv silencing.
-- The equivalent `.<shell>rc` block in `bootstrap.sh` configured for your desired shell. This is used to configure just autocompletions and direnv hook + silencing.
+- The equivalent shell rc block in `bootstrap.sh` configured for your desired shell. This is used to configure just autocompletions and direnv hook + silencing.
 - Non-root access to serial devices (equivalent of `dialout` group on Ubuntu).
