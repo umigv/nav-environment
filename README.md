@@ -1,4 +1,9 @@
 # ARV Navigation Host Environment Bootstrap
+
+> ⚠️ **Before merging to `main`:** the download URLs below point at the `ryanliao/docker`
+> branch for testing. Switch every `refs/heads/ryanliao/docker/` back to `refs/heads/main/`
+> before merging, or the published instructions will fetch from this branch.
+
 This repo maintains host-level tools used across all ARV repos.
 
 Before you start, if you don't have a GitHub account, make one, then follow the guide based on your operating system.
@@ -18,7 +23,7 @@ The script is idempotent and thus safe to rerun.
 
 Run the following in your terminal:
 ```bash
-curl -fsSL https://raw.githubusercontent.com/umigv/nav-environment/refs/heads/main/bootstrap.sh -o ~/bootstrap.sh && bash ~/bootstrap.sh
+curl -fsSL https://raw.githubusercontent.com/umigv/nav-environment/refs/heads/ryanliao/docker/bootstrap.sh -o ~/bootstrap.sh && bash ~/bootstrap.sh
 ```
 
 Follow the prompts. If you encounter anything related to SSH keys just press enter.
@@ -31,12 +36,12 @@ Firstly, if you don't have WSL2, install it by following [this tutorial](https:/
 Open PowerShell **as Administrator**, then run:
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/umigv/nav-environment/refs/heads/main/windows_bootstrap.ps1 -OutFile "$env:TEMP\windows_bootstrap.ps1"; & "$env:TEMP\windows_bootstrap.ps1"
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/umigv/nav-environment/refs/heads/ryanliao/docker/windows_bootstrap.ps1 -OutFile "$env:TEMP\windows_bootstrap.ps1"; & "$env:TEMP\windows_bootstrap.ps1"
 ```
 
 Inside the WSL2 terminal, run:
 ```bash
-wget -O ~/bootstrap.sh https://raw.githubusercontent.com/umigv/nav-environment/refs/heads/main/bootstrap.sh && bash ~/bootstrap.sh
+wget -O ~/bootstrap.sh https://raw.githubusercontent.com/umigv/nav-environment/refs/heads/ryanliao/docker/bootstrap.sh && bash ~/bootstrap.sh
 ```
 
 Follow the prompts. If you encounter anything related to SSH keys just press enter.
@@ -53,7 +58,7 @@ usbipd attach --wsl --busid <BUSID>  # each time you plug it in
 ## Debian / Ubuntu
 Run the following in your terminal:
 ```bash
-wget -O ~/bootstrap.sh https://raw.githubusercontent.com/umigv/nav-environment/refs/heads/main/bootstrap.sh && bash ~/bootstrap.sh
+wget -O ~/bootstrap.sh https://raw.githubusercontent.com/umigv/nav-environment/refs/heads/ryanliao/docker/bootstrap.sh && bash ~/bootstrap.sh
 ```
 
 Follow the prompts. If you encounter anything related to SSH keys just press enter.
