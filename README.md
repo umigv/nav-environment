@@ -76,10 +76,10 @@ Talk with Caitlyn.
 If you don't use any of the above systems, we assume you are using some other Linux distro. We don't offer first class support for this due to the sheer number of possibilities and because we believe you know what you're doing.
 
 We need these things:
-- A text editor or IDE installed. We offer first class support for VSCode but you're free to use whatever.
+- A text editor or IDE installed. We offer first class support for [VSCode](https://code.visualstudio.com/) but you're free to use whatever.
 - [Just](https://github.com/casey/just) installed. We use it as a centralized way to run commands across our repos.
 - [Direnv](https://direnv.net/) >=2.36 installed. We use it to load environment variables automatically in our repos which is especially useful for ROS2.
-- An SSH key added to your github account.
+- An SSH key added to your GitHub account.
 - An empty `direnv.toml` file created in `~/.config/direnv`. This is used to configure direnv silencing.
 - The equivalent `.<shell>rc` block in `bootstrap.sh` configured for your desired shell. This is used to configure just autocompletions and direnv hook + silencing.
 - Non-root access to serial devices (equivalent of `dialout` group on Ubuntu).
