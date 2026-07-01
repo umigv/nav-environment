@@ -14,7 +14,7 @@ Before you start, if you don't have a GitHub account, make one, then follow the 
 
 Run the following in your terminal:
 ```bash
-curl -fsSL https://raw.githubusercontent.com/umigv/nav-environment/refs/heads/ryanliao/docker/bootstrap.sh -o ~/bootstrap.sh && bash ~/bootstrap.sh
+curl -fsSLO https://raw.githubusercontent.com/umigv/nav-environment/refs/heads/ryanliao/docker/bootstrap.sh && bash ~/bootstrap.sh
 ```
 
 Follow the prompts. If you encounter anything related to SSH keys just press enter.
