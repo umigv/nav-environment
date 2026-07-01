@@ -8,15 +8,6 @@ This repo maintains host-level tools used across all ARV repos.
 
 Before you start, if you don't have a GitHub account, make one, then follow the guide based on your operating system.
 
-## What this does
-Before you run it, the bootstrap script makes a few persistent changes on your machine:
-- **Installs CLI tools:** [just](https://github.com/casey/just), [direnv](https://direnv.net/), and the [GitHub CLI](https://cli.github.com/).
-- **Edits your shell rc file** (`~/.bashrc` or `~/.zshrc`). It adds a clearly marked block (between `# >>> ARV environment >>>` and `# <<< ARV environment <<<`) that puts `~/.local/bin` on your PATH, silences direnv, and configures direnv and just.
-- **Adds you to the `dialout` group** (Debian/Ubuntu/WSL only) for non-root access to USB/serial devices.
-- **Sets your global git identity**: `user.name` / `user.email` if they aren't already configured.
-
-The script is idempotent and thus safe to rerun.
-
 ---
 
 ## MacOS (Apple Silicon)
