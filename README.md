@@ -49,7 +49,7 @@ usbipd attach --wsl --busid <BUSID>  # each time you plug it in
 ## Debian / Ubuntu
 Run the following in your terminal:
 ```bash
-wget -O ~/bootstrap.sh https://raw.githubusercontent.com/umigv/nav-environment/refs/heads/ryanliao/docker/bootstrap.sh && bash ~/bootstrap.sh
+wget https://raw.githubusercontent.com/umigv/nav-environment/refs/heads/ryanliao/docker/bootstrap.sh && bash ~/bootstrap.sh
 ```
 
 Follow the prompts. If you encounter anything related to SSH keys just press enter.
