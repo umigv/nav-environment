@@ -14,7 +14,7 @@ Before you start, if you don't have a GitHub account, make one, then follow the 
 
 Run the following in your terminal:
 ```bash
-curl -fsSLO https://raw.githubusercontent.com/umigv/nav-environment/refs/heads/ryanliao/docker/bootstrap.sh && bash ./bootstrap.sh
+curl -fsSLO https://raw.githubusercontent.com/umigv/nav-environment/refs/heads/ryanliao/docker/bootstrap.sh && bash bootstrap.sh
 ```
 
 Follow the prompts. If you encounter anything related to SSH keys just press enter.
@@ -32,7 +32,7 @@ Invoke-WebRequest -Uri https://raw.githubusercontent.com/umigv/nav-environment/r
 
 Inside the WSL2 terminal, run:
 ```bash
-wget https://raw.githubusercontent.com/umigv/nav-environment/refs/heads/ryanliao/docker/bootstrap.sh && bash ./bootstrap.sh
+wget https://raw.githubusercontent.com/umigv/nav-environment/refs/heads/ryanliao/docker/bootstrap.sh && bash bootstrap.sh
 ```
 
 Follow the prompts. If you encounter anything related to SSH keys just press enter.
@@ -49,7 +49,7 @@ usbipd attach --wsl --busid <BUSID>  # each time you plug it in
 ## Debian / Ubuntu
 Run the following in your terminal:
 ```bash
-wget https://raw.githubusercontent.com/umigv/nav-environment/refs/heads/ryanliao/docker/bootstrap.sh && bash ./bootstrap.sh
+wget https://raw.githubusercontent.com/umigv/nav-environment/refs/heads/ryanliao/docker/bootstrap.sh && bash bootstrap.sh
 ```
 
 Follow the prompts. If you encounter anything related to SSH keys just press enter.
