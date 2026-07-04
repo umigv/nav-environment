@@ -1,17 +1,15 @@
 # ARV Navigation Host Environment Bootstrap
-
 > ⚠️ **Before merging to `main`:** the download URLs below point at the `ryanliao/docker`
 > branch for testing. Switch every `refs/heads/ryanliao/docker/` back to `refs/heads/main/`
 > before merging, or the published instructions will fetch from this branch.
 
 This repo maintains host-level tools used across all ARV repos.
 
-Before you start, if you don't have a GitHub account, make one, then follow the guide based on your operating system.
+Before you start, make a GitHub account if you don't have one. Then, follow the guide based on your operating system.
 
 ---
 
 ## MacOS (Apple Silicon)
-
 Run the following in your terminal:
 ```bash
 curl -fsSLO https://raw.githubusercontent.com/umigv/nav-environment/refs/heads/ryanliao/docker/bootstrap.sh && bash bootstrap.sh
@@ -22,15 +20,13 @@ Follow the prompts. If you encounter anything related to SSH keys just press ent
 ---
 
 ## Windows
-Firstly, if you don't have WSL2, install it by following [this tutorial](https://eecs280staff.github.io/tutorials/setup_wsl.html).
-
 Open PowerShell **as Administrator**, then run:
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/umigv/nav-environment/refs/heads/ryanliao/docker/windows_bootstrap.ps1 -OutFile "$env:TEMP\windows_bootstrap.ps1"; & "$env:TEMP\windows_bootstrap.ps1"
 ```
 
-Inside the WSL2 terminal, run:
+**For ROS2 code, you also need WSL2.** If you don't have it, install it by following [this tutorial](https://eecs280staff.github.io/tutorials/setup_wsl.html), then inside the WSL2 terminal run:
 ```bash
 wget https://raw.githubusercontent.com/umigv/nav-environment/refs/heads/ryanliao/docker/bootstrap.sh && bash bootstrap.sh
 ```
@@ -57,17 +53,16 @@ Follow the prompts. If you encounter anything related to SSH keys just press ent
 ---
 
 ## MacOS (Intel)
-
 Talk with Caitlyn.
 
 ---
 
 ## None of the above
-
 If you don't use any of the above systems, we assume you are using some other Linux distro. We don't offer first class support for this due to the sheer number of possibilities and because we believe you know what you're doing.
 
 We need these things:
 - A text editor or IDE installed. We offer first class support for [VSCode](https://code.visualstudio.com/) but you're free to use whatever.
+- [Pixi](https://pixi.sh) installed. Our repos use it to install their locked toolchains.
 - [Just](https://github.com/casey/just) installed. We use it as a centralized way to run commands across our repos.
 - [Direnv](https://direnv.net/) >=2.36 installed. We use it to load environment variables automatically in our repos which is especially useful for ROS2.
 - An SSH key added to your GitHub account.

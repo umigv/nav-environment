@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-LOCAL_BIN="$HOME/.local/bin"
+PIXI_BIN="$HOME/.pixi/bin"
 # Make freshly-installed binaries visible to `command -v` within this same run.
-export PATH="$LOCAL_BIN:$PATH"
+export PATH="$PIXI_BIN:$PATH"
 
 log() { printf '\033[1;34m===> %s\033[0m\n' "$*"; }
 trap 'printf "\033[1;31mERROR at line %s: %s (exit %s)\033[0m\n" "$LINENO" "$BASH_COMMAND" "$?" >&2' ERR
@@ -42,7 +42,7 @@ ensure_prereqs() {
     case "$(detect_platform)" in
         macos)
             # We need to have sudo authorization before brew install, since it requires sudo, but cannot prompt the user
-            # for their password due to being run in non-interactive mode.
+            # for their password due to being run in non-interactive mode. Brew is only used for the VSCode cask.
             sudo -v
             install_brew ;;
         linux|wsl)
@@ -54,50 +54,19 @@ ensure_prereqs() {
 
 # ---- Tools -----------------------------------------------------------------------------------------------------------
 
-install_just() {
-    command -v just >/dev/null 2>&1 && { log "just already installed"; return; }
-    log "Installing just"
-    case "$(detect_platform)" in
-        macos)
-            brew install just ;;
-        linux|wsl)
-            mkdir -p "$LOCAL_BIN"
-            curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to "$LOCAL_BIN" ;;
-    esac
+install_pixi() {
+    command -v pixi >/dev/null 2>&1 && { log "pixi already installed"; return; }
+    log "Installing pixi"
+    # We manage the rc PATH block ourselves, so keep the installer out of the rc file.
+    curl -fsSL https://pixi.sh/install.sh | PIXI_NO_PATH_UPDATE=1 bash
+    assert_exists pixi
+}
+
+install_tools() {
+    log "Installing just, direnv, and gh via pixi global"
+    pixi global install just direnv gh
     assert_exists just
-}
-
-install_direnv() {
-    command -v direnv >/dev/null 2>&1 && { log "direnv already installed"; return; }
-    log "Installing direnv"
-    case "$(detect_platform)" in
-        macos)
-            brew install --no-ask direnv ;;
-        linux|wsl)
-            mkdir -p "$LOCAL_BIN"
-            curl -sfL https://direnv.net/install.sh | bin_path="$LOCAL_BIN" bash ;;
-    esac
     assert_exists direnv
-}
-
-install_gh() {
-    command -v gh >/dev/null 2>&1 && { log "gh already installed"; return; }
-    log "Installing GitHub CLI"
-    case "$(detect_platform)" in
-        macos)
-            brew install gh ;;
-        linux|wsl)
-            if [ ! -f /etc/apt/sources.list.d/github-cli.list ]; then
-                keyring=/usr/share/keyrings/githubcli-archive-keyring.gpg
-                curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of="$keyring"
-                sudo chmod go+r "$keyring"
-                arch=$(dpkg --print-architecture)
-                echo "deb [arch=$arch signed-by=$keyring] https://cli.github.com/packages stable main" \
-                    | sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null
-                sudo apt update
-            fi
-            sudo apt install -y gh ;;
-    esac
     assert_exists gh
 }
 
@@ -170,19 +139,21 @@ $mark_end"
 # Single-quoted so $PATH/$HOME/$(...) stay literal for the user's shell to evaluate.
 # shellcheck disable=SC2016
 BASH_BODY='# Added by the ARV host bootstrap. Edit/remove this whole block, not pieces.
-case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) export PATH="$HOME/.local/bin:$PATH" ;; esac
+case ":$PATH:" in *":$HOME/.pixi/bin:"*) ;; *) export PATH="$HOME/.pixi/bin:$PATH" ;; esac
 export DIRENV_LOG_FORMAT=
 eval "$(direnv hook bash)"
-source <(just --completions bash)'
+source <(just --completions bash)
+eval "$(pixi completion --shell bash)"'
 
 # shellcheck disable=SC2016
 ZSH_BODY='# Added by the ARV host bootstrap. Edit/remove this whole block, not pieces.
-case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) export PATH="$HOME/.local/bin:$PATH" ;; esac
+case ":$PATH:" in *":$HOME/.pixi/bin:"*) ;; *) export PATH="$HOME/.pixi/bin:$PATH" ;; esac
 export DIRENV_LOG_FORMAT=
 eval "$(direnv hook zsh)"
 # Register completions and initialize
 fpath=("$HOME/.zsh/completions" $fpath)
-command -v compdef >/dev/null 2>&1 || { autoload -Uz compinit && compinit; }'
+command -v compdef >/dev/null 2>&1 || { autoload -Uz compinit && compinit; }
+eval "$(pixi completion --shell zsh)"'
 
 install_zsh_completion() {
     local dir="$HOME/.zsh/completions"
@@ -242,7 +213,7 @@ close_terminal() {
         esac
         pid=$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ')
     done
-    
+
     echo "close_terminal: unrecognized terminal emulator in process ancestry; leaving open" >&2
     return 1
 }
@@ -252,9 +223,8 @@ close_terminal() {
 main() {
     log "ARV host bootstrap - platform: $(detect_platform)"
     ensure_prereqs
-    install_just
-    install_direnv
-    install_gh
+    install_pixi
+    install_tools
     install_vscode
     configure_direnv
     configure_shell
