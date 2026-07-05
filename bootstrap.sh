@@ -40,11 +40,6 @@ install_brew() {
 
 ensure_prereqs() {
     case "$(detect_platform)" in
-        macos)
-            # We need to have sudo authorization before brew install, since it requires sudo, but cannot prompt the user
-            # for their password due to being run in non-interactive mode. Brew is only used for the VSCode cask.
-            sudo -v
-            install_brew ;;
         linux|wsl)
             log "Updating apt and installing base tools"
             sudo apt update
@@ -81,6 +76,10 @@ install_vscode() {
     log "Installing VSCode"
     case "$(detect_platform)" in
         macos)
+            # Brew is only used for the VSCode cask, so install it lazily here. Its installer needs sudo but runs
+            # non-interactively and cannot prompt for a password, so cache sudo credentials first.
+            sudo -v
+            install_brew
             brew install --cask visual-studio-code ;;
         linux)
             if [ ! -f /etc/apt/sources.list.d/vscode.list ]; then

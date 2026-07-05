@@ -1,40 +1,36 @@
 #Requires -RunAsAdministrator
 
-function Install-IfMissing($Command, $WingetId, $Description) {
+function Install-IfMissing($Command, $WingetId, $Description, $Prompt) {
     Write-Host "==> $Description..."
     if (Get-Command $Command -ErrorAction SilentlyContinue) {
         Write-Host "$Command already installed."
-    } else {
-        winget install --exact --id $WingetId --silent `
-            --accept-package-agreements --accept-source-agreements
+        return
     }
+    if ($Prompt) {
+        $reply = Read-Host $Prompt
+        if ($reply -match '^[Nn]') {
+            Write-Host "Skipping $Description install."
+            return
+        }
+    }
+    winget install --exact --id $WingetId --silent `
+        --accept-package-agreements --accept-source-agreements
 }
 
 Install-IfMissing git    Git.Git         "Git"
-Install-IfMissing pixi   prefix-dev.pixi "pixi (per-repo toolchain manager)"
-Install-IfMissing just   Casey.Just      "just (command runner)"
+Install-IfMissing pixi   prefix-dev.pixi "pixi"
+Install-IfMissing just   Casey.Just      "just"
 Install-IfMissing gh     GitHub.cli      "GitHub CLI"
-Install-IfMissing usbipd dorssel.usbipd-win "usbipd-win (USB passthrough into WSL2, for the ROS stack)"
+Install-IfMissing usbipd dorssel.usbipd-win "usbipd-win (USB passthrough into WSL2)"
 
-Write-Host "==> Visual Studio Code..."
-if (Get-Command code -ErrorAction SilentlyContinue) {
-    Write-Host "VSCode already installed."
-} else {
-    $reply = Read-Host "VSCode not found. Install it? Choose 'n' if you have another editor. [Y/n]"
-    if ($reply -notmatch '^[Nn]') {
-        winget install --exact --id Microsoft.VisualStudioCode --silent `
-            --accept-package-agreements --accept-source-agreements
-    } else {
-        Write-Host "Skipping VSCode install (using your own editor)."
-    }
-}
+Install-IfMissing code Microsoft.VisualStudioCode "Visual Studio Code" `
+    -Prompt "VSCode not found. Install it? Choose 'n' if you have another editor. [Y/n]"
 
 # Fresh winget installs are not on this session's PATH yet; reload it so gh/git below resolve.
 $env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' +
             [Environment]::GetEnvironmentVariable('Path', 'User')
 
-# The ssh-agent service is disabled by default on Windows; without it a passphrase-protected
-# key prompts on every push.
+# The ssh-agent service is disabled by default on Windows; without it a passphrase-protected key prompts on every push.
 Write-Host "==> Enabling ssh-agent service..."
 Set-Service -Name ssh-agent -StartupType Automatic
 Start-Service ssh-agent
