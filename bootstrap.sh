@@ -197,26 +197,6 @@ setup_github() {
     fi
 }
 
-# SIGHUP the terminal emulator so its window closes, forcing a fresh login shell so the rc changes we just wrote take
-# effect. We climb the process tree by ancestor *name* rather than a fixed number of hops, since the launch chain
-# between this script and the terminal can gain or lose layers.
-close_terminal() {
-    local pid=$PPID name
-    while [ -n "$pid" ] && [ "$pid" -gt 1 ]; do
-        name=$(ps -o comm= -p "$pid" 2>/dev/null) || break
-        case "$name" in
-            *gnome-terminal*|*konsole*|*xterm*|*alacritty*|*kitty*|*tilix*|\
-            *terminator*|*wezterm*|*foot*|*ptyxis*|*xfce4-terminal*|login*)
-                kill -HUP "$pid"
-                return 0 ;;
-        esac
-        pid=$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ')
-    done
-
-    echo "close_terminal: unrecognized terminal emulator in process ancestry; leaving open" >&2
-    return 1
-}
-
 # ---- Main ------------------------------------------------------------------------------------------------------------
 
 main() {
@@ -229,11 +209,7 @@ main() {
     configure_shell
     add_dialout
     setup_github
-    log "Host bootstrap complete. Press enter to close this terminal (required)."
-    read -r
-    rm -f "$0"
-    # Setup already succeeded; a failed auto-close shouldn't fail the script.
-    close_terminal || true
+    log "Host bootstrap complete. Open a new terminal for the changes to take effect."
 }
 
 main "$@"
