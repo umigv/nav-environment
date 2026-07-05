@@ -5,6 +5,7 @@
 
 This repo maintains host-level tools used across all ARV repos.
 
+## Getting started
 Before you start, make a GitHub account if you don't have one. Then, follow the guide based on your operating system.
 
 ---
