@@ -68,5 +68,5 @@ We need these things:
 - [Direnv](https://direnv.net/) >=2.36 installed. We use it to load environment variables automatically in our repos which is especially useful for ROS2.
 - An SSH key added to your GitHub account.
 - An empty `direnv.toml` file created in `~/.config/direnv`. This is used to configure direnv silencing.
-- The equivalent shell rc block in `bootstrap.sh` configured for your desired shell. This is used to configure just autocompletions and direnv hook + silencing.
+- The equivalent of the shell rc block in `bootstrap.sh` (see `BASH_BODY`/`ZSH_BODY`) configured for your shell. **This also applies if you run a supported OS but a shell other than bash or zsh.**
 - Non-root access to serial devices (equivalent of `dialout` group on Ubuntu).

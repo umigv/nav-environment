@@ -163,10 +163,23 @@ install_zsh_completion() {
 }
 
 configure_shell() {
-    local rc body
-    case "$(basename "${SHELL:-/bin/bash}")" in
-        zsh) rc="$HOME/.zshrc";  body="$ZSH_BODY"; install_zsh_completion ;;
-        *)   rc="$HOME/.bashrc"; body="$BASH_BODY" ;;
+    local shell_name rc body
+    shell_name="$(basename "${SHELL:-}")"
+    case "$shell_name" in
+        zsh)
+            rc="$HOME/.zshrc"; body="$ZSH_BODY"
+            install_zsh_completion ;;
+        bash)
+            rc="$HOME/.bashrc"; body="$BASH_BODY" ;;
+        *)
+            if [ -z "$shell_name" ]; then
+                log "Could not detect your login shell (\$SHELL is not set) - skipping shell rc setup."
+            else
+                log "Login shell '$shell_name' is not bash or zsh - skipping shell rc setup."
+            fi
+            log "Replicate the BASH_BODY/ZSH_BODY rc block in bootstrap.sh for your shell"
+            log "(See 'None of the above' in the README)."
+            return 0 ;;
     esac
     touch "$rc"
     update_or_append_block "$rc" "$body"
