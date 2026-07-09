@@ -31,14 +31,10 @@ case "$(detect_platform)" in
     linux) WANT_VSCODE=1; WANT_DIALOUT=1 ;;
 esac
 
-install_brew() {
-    command -v brew >/dev/null 2>&1 && { log "brew already installed"; return; }
-    log "Installing Homebrew"
-    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    [ -x /opt/homebrew/bin/brew ] && eval "$(/opt/homebrew/bin/brew shellenv)"
-}
-
 ensure_prereqs() {
+    # Some installers (i.e. brew) needs sudo but runs non-interactively and cannot prompt for a password, so cache sudo
+    # credentials first.
+    sudo -v
     case "$(detect_platform)" in
         linux|wsl)
             log "Updating apt and installing base tools"
@@ -65,6 +61,13 @@ install_tools() {
     assert_exists gh
 }
 
+install_brew() {
+    command -v brew >/dev/null 2>&1 && { log "brew already installed"; return; }
+    log "Installing Homebrew"
+    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    [ -x /opt/homebrew/bin/brew ] && eval "$(/opt/homebrew/bin/brew shellenv)"
+}
+
 install_vscode() {
     [ "$WANT_VSCODE" = 1 ] || return 0   # bare `return` would propagate the failed test (1) and trip `set -e`
     command -v code >/dev/null 2>&1 && { log "VSCode already installed"; return; }
@@ -76,9 +79,7 @@ install_vscode() {
     log "Installing VSCode"
     case "$(detect_platform)" in
         macos)
-            # Brew is only used for the VSCode cask, so install it lazily here. Its installer needs sudo but runs
-            # non-interactively and cannot prompt for a password, so cache sudo credentials first.
-            sudo -v
+            # Brew is only used for the VSCode cask, so install it lazily here.
             install_brew
             brew install --cask visual-studio-code ;;
         linux)
