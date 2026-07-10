@@ -110,13 +110,14 @@ configure_direnv() {
 }
 
 update_or_append_block() {
-    local rc_path="$1" body="$2" rc_name="${1##*/}"
+    local rc_path="$1" body="$2" rc_name="${1#"$HOME"/}"
     local mark_start='# >>> ARV environment >>>'
     local mark_end='# <<< ARV environment <<<'
     local block="$mark_start
 $body
 $mark_end"
 
+    mkdir -p "$(dirname "$rc_path")"
     touch "$rc_path"
     if grep -qF "$mark_start" "$rc_path"; then
         log "Updating configuration in ~/$rc_name"
@@ -153,6 +154,12 @@ eval "$(direnv hook zsh)"
 fpath=("$HOME/.zsh/completions" $fpath)
 command -v compdef >/dev/null 2>&1 || { autoload -Uz compinit && compinit; }'
 
+# shellcheck disable=SC2016
+FISH_BODY='# Managed by the ARV host bootstrap. Delete this file to uninstall.
+fish_add_path --global "$HOME/.pixi/bin"
+set -gx DIRENV_LOG_FORMAT ""
+direnv hook fish | source'
+
 install_bash_completion() {
     local dir="$HOME/.local/share/bash-completion/completions"
     log "Installing bash completions for just and pixi in ~/.local/share/bash-completion/completions"
@@ -169,6 +176,14 @@ install_zsh_completion() {
     pixi completion --shell zsh > "$dir/_pixi"
 }
 
+install_fish_completion() {
+    local dir="$HOME/.config/fish/completions"
+    log "Installing fish completions for just and pixi in ~/.config/fish/completions"
+    mkdir -p "$dir"
+    just --completions fish > "$dir/just.fish"
+    pixi completion --shell fish > "$dir/pixi.fish"
+}
+
 configure_shell() {
     local shell_name
     shell_name="$(basename "${SHELL:-}")"
@@ -179,11 +194,14 @@ configure_shell() {
         bash)
             update_or_append_block "$HOME/.bashrc" "$BASH_BODY"
             install_bash_completion ;;
+        fish)
+            update_or_append_block "$HOME/.config/fish/conf.d/arv.fish" "$FISH_BODY"
+            install_fish_completion ;;
         *)
             if [ -z "$shell_name" ]; then
                 log "Could not detect your login shell (\$SHELL is not set) - skipping shell configuration."
             else
-                log "Login shell '$shell_name' is not bash or zsh - skipping shell configuration."
+                log "Login shell '$shell_name' is not bash, zsh, or fish - skipping shell configuration."
             fi
             log "Replicate the changes in configure_shell in bootstrap.sh for your shell"
             log "(See 'None of the above' in the README)." ;;
