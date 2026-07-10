@@ -27,6 +27,8 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/umigv/nav-environment/refs/heads/ryanliao/docker/windows_bootstrap.ps1 -OutFile "$env:TEMP\windows_bootstrap.ps1"; & "$env:TEMP\windows_bootstrap.ps1"
 ```
 
+Follow the prompts. If you encounter anything related to SSH keys just press enter.
+
 **For ROS2 code, you also need WSL2.** If you don't have it, install it by following [this tutorial](https://eecs280staff.github.io/tutorials/setup_wsl.html), then inside the WSL2 terminal run:
 ```bash
 wget https://raw.githubusercontent.com/umigv/nav-environment/refs/heads/ryanliao/docker/bootstrap.sh && bash bootstrap.sh

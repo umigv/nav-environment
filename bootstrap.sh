@@ -195,9 +195,7 @@ add_dialout() {
 
 setup_github() {
     log "GitHub setup"
-    if ! gh auth status >/dev/null 2>&1 || ! gh auth status 2>&1 | grep -q 'ssh'; then
-        gh auth login --git-protocol ssh --web
-    fi
+    gh auth login --git-protocol ssh --web
 
     if ! git config --global user.name >/dev/null 2>&1; then
         git config --global user.name "$(gh api user --jq '.name // .login')"
