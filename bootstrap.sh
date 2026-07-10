@@ -152,14 +152,14 @@ export DIRENV_LOG_FORMAT=
 eval "$(direnv hook zsh)"
 # Register completions and initialize
 fpath=("$HOME/.zsh/completions" $fpath)
-command -v compdef >/dev/null 2>&1 || { autoload -Uz compinit && compinit; }
-eval "$(pixi completion --shell zsh)"'
+command -v compdef >/dev/null 2>&1 || { autoload -Uz compinit && compinit; }'
 
 install_zsh_completion() {
     local dir="$HOME/.zsh/completions"
-    log "Installing zsh completion for just in ~/.zsh/completions"
+    log "Installing zsh completions for just and pixi in ~/.zsh/completions"
     mkdir -p "$dir"
-    { printf '#compdef just\n'; just --completions zsh; } > "$dir/_just"
+    just --completions zsh > "$dir/_just"
+    pixi completion --shell zsh > "$dir/_pixi"
 }
 
 configure_shell() {
