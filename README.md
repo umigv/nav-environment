@@ -6,7 +6,7 @@
 This repo maintains host-level tools used across all ARV repos.
 
 ## Getting started
-Before you start, make a GitHub account if you don't have one. Then, follow the guide based on your operating system.
+Before you start, make a GitHub account if you don't have one. Then, follow the guide based on your operating system. If something goes wrong, check [Troubleshooting](#troubleshooting). 
 
 ---
 
@@ -71,3 +71,31 @@ We need these things:
 - An empty `direnv.toml` file created in `~/.config/direnv`. This is used to configure direnv silencing.
 - The equivalent of `configure_shell` in `bootstrap.sh` configured for your shell. **This also applies if you run a supported OS but a shell other than bash or zsh.**
 - Non-root access to serial devices (equivalent of `dialout` group on Ubuntu).
+
+---
+
+## Troubleshooting
+
+### "Permission denied" on a directory
+A directory (often `~/.config`) is owned by root, usually because an installer was run with `sudo` at some point. Take ownership back:
+```bash
+sudo chown -R "$USER" <directory>
+```
+Replace `<directory>` with the directory from the error message, then retry whatever failed.
+
+### Git errors when cloning or pushing (e.g. `Permission denied (publickey)`)
+Your SSH key isn't set up correctly with GitHub. Reset the GitHub login and let the setup script redo it:
+```bash
+gh auth logout
+```
+Then run the setup script for your OS again and follow the GitHub prompts.
+
+### Conda is installed and Pixi isn't working
+Conda auto-activates its `base` environment in every new shell, which interferes with Pixi. Turn the autoload off:
+```bash
+conda config --set auto_activate_base false
+```
+Then open a new terminal and try again.
+
+### Still stuck?
+If none of the above solves your problem, ask a lead.
