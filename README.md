@@ -1,5 +1,4 @@
 # ARV Navigation Host Environment Bootstrap
-
 This repo maintains host-level tools used across all ARV repos.
 
 ## Getting started
