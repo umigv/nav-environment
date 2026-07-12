@@ -52,7 +52,7 @@ Follow the prompts. If you encounter anything related to SSH keys just press ent
 ---
 
 ## MacOS (Intel)
-Talk with Caitlyn.
+Talk with a lead.
 
 ---
 
