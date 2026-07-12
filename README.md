@@ -81,11 +81,7 @@ sudo chown -R "$USER" <directory>
 Replace `<directory>` with the directory from the error message, then retry whatever failed.
 
 ### Git errors when cloning or pushing (e.g. `Permission denied (publickey)`)
-Your SSH key isn't set up correctly with GitHub. Reset the GitHub login and let the setup script redo it:
-```bash
-gh auth logout
-```
-Then run the setup script for your OS again and follow the GitHub prompts.
+Your SSH key isn't set up correctly with GitHub. Run the setup script again and make sure to add a SSH key.
 
 ### Conda is installed and Pixi isn't working
 Conda auto-activates its `base` environment in every new shell, which interferes with Pixi. Turn the autoload off:
