@@ -65,7 +65,7 @@ We need these things:
 - [Just](https://github.com/casey/just) and [Direnv](https://direnv.net/) >=2.36 installed. Just is our centralized way to run commands across our repos; direnv loads environment variables automatically in our repos, which is especially useful for ROS2. Once Pixi is installed, `pixi global install just direnv` gets you both (this is what `bootstrap.sh` does), but any install method works.
 - An SSH key added to your GitHub account.
 - An empty `direnv.toml` file created in `~/.config/direnv`. This is used to configure direnv silencing.
-- The equivalent of `configure_shell` in `bootstrap.sh` configured for your shell. **This also applies if you run a supported OS but a shell other than bash or zsh.**
+- The equivalent of `configure_shell` in `bootstrap.sh` configured for your shell. **This also applies if you run a supported OS but a shell other than bash, zsh or fish.**
 - Non-root access to serial devices (equivalent of `dialout` group on Ubuntu).
 
 ---
