@@ -6,7 +6,7 @@ Before you start, make a GitHub account if you don't have one. Then, follow the 
 
 ---
 
-## MacOS (Apple Silicon)
+## macOS (Apple Silicon)
 Run the following in your terminal:
 ```bash
 curl -fsSLO https://raw.githubusercontent.com/umigv/nav-environment/refs/heads/main/bootstrap.sh && bash bootstrap.sh
@@ -51,7 +51,7 @@ Follow the prompts. If you encounter anything related to SSH keys just press ent
 
 ---
 
-## MacOS (Intel)
+## macOS (Intel)
 Talk with a lead.
 
 ---
