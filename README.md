@@ -87,6 +87,14 @@ Conda auto-activates its `base` environment in every new shell, which interferes
 ```bash
 conda config --set auto_activate_base false
 ```
+If you are using the `fish` shell, this configuration will likely not be respected. An alternative is to replace the block in `.config/fish/config.fish` created by `conda init fish` with the following function, to lazy-load it when `conda` is first used.
+```fish
+function conda
+functions -e conda # unset the function
+eval /usr/bin/conda "shell.fish" "hook" | source
+conda $argv
+end
+```
 Then open a new terminal and try again.
 
 ### Still stuck?
